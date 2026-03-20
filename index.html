@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>员工管理系统</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">员工管理系统</h1>
+                <button class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <nav class="nav" id="mainNav">
+                <a href="#" class="nav-item active" data-page="employees">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">员工管理</span>
+                </a>
+                <a href="#" class="nav-item" data-page="attendance">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-text">考勤管理</span>
+                </a>
+                <a href="#" class="nav-item" data-page="history">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">变动记录</span>
+                </a>
+                <a href="#" class="nav-item" data-page="import-export">
+                    <span class="nav-icon">📤</span>
+                    <span class="nav-text">导入导出</span>
+                </a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <!-- 员工管理页面 -->
+            <section class="page active" id="page-employees">
+                <div class="page-header">
+                    <h2>员工列表</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-primary" id="addEmployeeBtn">+ 添加员工</button>
+                    </div>
+                </div>
+                <div class="filter-bar">
+                    <input type="text" class="search-input" id="employeeSearch" placeholder="搜索员工姓名、工号...">
+                    <select class="filter-select" id="departmentFilter">
+                        <option value="">所有部门</option>
+                    </select>
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">所有状态</option>
+                        <option value="active">在职</option>
+                        <option value="inactive">离职</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="employeeTable">
+                        <thead>
+                            <tr>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>部门</th>
+                                <th>职位</th>
+                                <th>手机</th>
+                                <th>邮箱</th>
+                                <th>入职日期</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeeTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="empty-state" id="emptyEmployees">
+                    <p>暂无员工数据</p>
+                    <button class="btn btn-primary" id="addFirstEmployee">添加第一位员工</button>
+                </div>
+            </section>
+
+            <!-- 考勤管理页面 -->
+            <section class="page" id="page-attendance">
+                <div class="page-header">
+                    <h2>考勤管理</h2>
+                </div>
+                <div class="attendance-controls">
+                    <div class="date-picker-group">
+                        <label>选择日期：</label>
+                        <input type="date" class="date-input" id="attendanceDate">
+                    </div>
+                    <div class="attendance-actions">
+                        <button class="btn btn-secondary" id="batchAttendanceBtn">批量标记</button>
+                        <button class="btn btn-secondary" id="viewAttendanceBtn">查看记录</button>
+                    </div>
+                </div>
+                <div class="attendance-content" id="attendanceContent">
+                    <div class="batch-attendance-panel" id="batchPanel">
+                        <h3>批量考勤标记</h3>
+                        <div class="batch-controls">
+                            <button class="btn btn-sm" id="selectAllBtn">全选</button>
+                            <button class="btn btn-sm" id="deselectAllBtn">取消全选</button>
+                            <select class="status-select" id="batchStatus">
+                                <option value="normal">正常</option>
+                                <option value="late">迟到</option>
+                                <option value="early">早退</option>
+                                <option value="leave">请假</option>
+                                <option value="absent">缺勤</option>
+                            </select>
+                            <button class="btn btn-primary btn-sm" id="applyBatchBtn">应用</button>
+                        </div>
+                        <div class="employee-checkbox-list" id="employeeCheckList">
+                        </div>
+                    </div>
+                </div>
+                <div class="attendance-records-panel" id="recordsPanel" style="display:none;">
+                    <h3>考勤记录</h3>
+                    <div class="records-filter">
+                        <input type="text" class="search-input" id="attendanceSearch" placeholder="搜索员工...">
+                        <input type="date" class="date-input" id="filterDateStart" placeholder="开始日期">
+                        <input type="date" class="date-input" id="filterDateEnd" placeholder="结束日期">
+                        <button class="btn btn-secondary btn-sm" id="filterAttendanceBtn">筛选</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>工号</th>
+                                    <th>姓名</th>
+                                    <th>部门</th>
+                                    <th>考勤状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceRecordsBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 变动记录页面 -->
+            <section class="page" id="page-history">
+                <div class="page-header">
+                    <h2>员工变动记录</h2>
+                </div>
+                <div class="history-filter">
+                    <select class="filter-select" id="historyTypeFilter">
+                        <option value="">所有类型</option>
+                        <option value="onboard">入职</option>
+                        <option value="offboard">离职</option>
+                    </select>
+                    <input type="text" class="search-input" id="historySearch" placeholder="搜索员工...">
+                </div>
+                <div class="timeline" id="historyTimeline">
+                </div>
+                <div class="empty-state" id="emptyHistory">
+                    <p>暂无变动记录</p>
+                </div>
+            </section>
+
+            <!-- 导入导出页面 -->
+            <section class="page" id="page-import-export">
+                <div class="page-header">
+                    <h2>数据导入导出</h2>
+                </div>
+                <div class="import-export-grid">
+                    <div class="card">
+                        <h3>导出员工数据</h3>
+                        <p>将员工信息导出为 Excel 或 CSV 文件</p>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" id="exportEmployeesExcel">导出 Excel</button>
+                            <button class="btn btn-secondary" id="exportEmployeesCSV">导出 CSV</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>导出考勤数据</h3>
+                        <p>将考勤记录导出为 Excel 或 CSV 文件</p>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" id="exportAttendanceExcel">导出 Excel</button>
+                            <button class="btn btn-secondary" id="exportAttendanceCSV">导出 CSV</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>导入员工数据</h3>
+                        <p>从 Excel 或 CSV 文件导入员工信息</p>
+                        <div class="card-actions">
+                            <input type="file" id="importEmployeeFile" accept=".xlsx,.xls,.csv,.txt" style="display:none;">
+                            <button class="btn btn-primary" id="importEmployeesBtn">选择文件</button>
+                        </div>
+                        <div class="import-info" id="importInfo"></div>
+                    </div>
+                    <div class="card">
+                        <h3>导入考勤数据</h3>
+                        <p>从 Excel 或 CSV 文件导入考勤记录</p>
+                        <div class="card-actions">
+                            <input type="file" id="importAttendanceFile" accept=".xlsx,.xls,.csv,.txt" style="display:none;">
+                            <button class="btn btn-primary" id="importAttendanceBtn">选择文件</button>
+                        </div>
+                        <div class="import-info" id="importAttendanceInfo"></div>
+                    </div>
+                </div>
+                <div class="template-section">
+                    <h3>导入模板</h3>
+                    <p>下载模板文件以了解正确的导入格式</p>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" id="downloadEmployeeTemplate">员工数据模板</button>
+                        <button class="btn btn-secondary" id="downloadAttendanceTemplate">考勤数据模板</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 员工表单弹窗 -->
+    <div class="modal" id="employeeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">添加员工</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <form id="employeeForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>工号 *</label>
+                        <input type="text" id="empId" required>
+                    </div>
+                    <div class="form-group">
+                        <label>姓名 *</label>
+                        <input type="text" id="empName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>部门 *</label>
+                        <input type="text" id="empDepartment" required list="departmentList">
+                        <datalist id="departmentList"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>职位 *</label>
+                        <input type="text" id="empPosition" required>
+                    </div>
+                    <div class="form-group">
+                        <label>手机 *</label>
+                        <input type="tel" id="empPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <input type="email" id="empEmail">
+                    </div>
+                    <div class="form-group">
+                        <label>入职日期 *</label>
+                        <input type="date" id="empHireDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>状态</label>
+                        <select id="empStatus">
+                            <option value="active">在职</option>
+                            <option value="inactive">离职</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group offboard-fields" id="offboardFields" style="display:none;">
+                    <label>离职日期</label>
+                    <input type="date" id="empOffboardDate">
+                </div>
+                <div class="form-group offboard-fields" id="offboardReasonField" style="display:none;">
+                    <label>离职原因</label>
+                    <textarea id="empOffboardReason" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelForm">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 确认弹窗 -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3 id="confirmTitle">确认</h3>
+                <button class="modal-close" id="closeConfirm">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" id="confirmCancel">取消</button>
+                <button class="btn btn-danger" id="confirmOk">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 员工详情弹窗 -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>员工详情</h3>
+                <button class="modal-close" id="closeDetail">&times;</button>
+            </div>
+            <div class="modal-body" id="employeeDetail">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/app.js"></script>
+    <script src="js/employee.js"></script>
+    <script src="js/attendance.js"></script>
+    <script src="js/import-export.js"></script>
+</body>
+</html>
