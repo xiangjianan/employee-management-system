@@ -1,1 +1,3 @@
-# 员工管理系统
+# Employee Management System
+
+**English** | [简体中文](README.zh-CN.md)
